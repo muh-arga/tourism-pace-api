@@ -1,106 +1,83 @@
-const Place = require("../models/place.js");
+const Place = require("../models/place");
 
-exports.create = (req, res) => {
-  if (!req.body) {
-    req.status(400).send({
-      message: "Fill all data!",
+module.exports = {
+  create: async (req, res) => {
+    const imageAsset =
+      req.protocol + "://" + req.get("host") + "/" + req.file.filename;
+
+    const place = new Place({
+      name: req.body.name,
+      location: req.body.location,
+      description: req.body.description,
+      imageAsset: imageAsset,
+      openDay: req.body.openDay,
+      openHour: req.body.openHour,
+      ticketPrice: req.body.ticketPrice,
     });
-  }
 
-  const imageAsset = req.protocol + "://"+ req.get('host') + "/" + req.file.filename;
-
-  const place = new Place({
-    name: req.body.name,
-    location: req.body.location,
-    imageAsset: imageAsset,
-    description: req.body.description,
-    openDay: req.body.openDay,
-    openHour: req.body.openHour,
-    ticketPrice: req.body.ticketPrice,
-  });
-  Place.create(place, (err, data) => {
-    if (err) {
-      res.status(500).send({
-        message: err.message || "Error when creating Place.",
+    try {
+      place.save((err, ress) => {
+        if (err) return res.status(400).json({ Response: err });
+        res.status(200).json(place);
       });
-    } else res.send({data: data});
-  });
-};
+    } catch (err) {
+      if (err) return res.status(400).json({ response: err });
+    }
+  },
 
-exports.findAll = (req, res) => {
-  const name = req.query.title;
-  Place.getAll(name, (err, data) => {
-    if (err) {
-      res.status(500).send({
-        message: err.message || "Error when get Place.",
-      });
-    } else res.send(data);
-  });
-};
+  findAll: async (req, res) => {
+    const places = await Place.find({});
+    if (!places)
+      return res.status(400).json({ response: "Cannot find places" });
+    return res.status(200).json(places);
+  },
 
-exports.findOne = (req, res) => {
-  Place.findById(req.params.id, (err, data) => {
-    if (err) {
-      if (err.kind == "not_found") {
-        res.status(404).send({
-          message: `Not found Place with id ${req.params.id}`,
-        });
-      } else {
-        req.status(500).send({
-          message: "Error get Place with id " + req.params.id,
-        });
-      }
-    } else res.send(data);
-  });
-};
-
-exports.update = (req, res) => {
-  if (!req.body) {
-    res.status(400).send({
-      message: "Fill all data!",
+  findOne: async (req, res) => {
+    const id = req.params.id;
+    await Place.findById(id, (err, place) => {
+      if (err) return res.status(400).json({ response: err });
+      return res.status(200).json(place);
     });
-  }
+  },
 
-  const imageAsset = req.get('host') + req.file.filename;
+  update: async (req, res) => {
+    const { id } = req.params;
+    const imageAsset =
+      req.protocol + "://" + req.get("host") + "/" + req.file.filename;
 
-  const place = new Place({
-    name: req.body.name,
-    location: req.body.location,
-    imageAsset: imageAsset,
-    description: req.body.description,
-    openDay: req.body.openDay,
-    openHour: req.body.openHour,
-    ticketPrice: req.body.ticketPrice,
-  });
+    try {
+      let placeParams = {
+        name: req.body.name,
+        location: req.body.location,
+        description: req.body.description,
+        imageAsset: imageAsset,
+        openDay: req.body.openDay,
+        openHour: req.body.openHour,
+        ticketPrice: req.ticketPrice,
+      };
 
-  console.log(req.body);
-  Place.updateById(req.params.id, place, (err, data) => {
-    if (err) {
-      if (err.kind == "not_found") {
-        res.status(404).send({
-          message: `Not found Place with id ${req.params.id}`,
-        });
-      } else {
-        res.status(500).send({
-          message: "Error updating Place with id " + req.params.id,
-        });
-      }
-    } else res.send(data);
-  });
-};
+      Place.findOneAndUpdate(
+        id,
+        {
+          $set: placeParams,
+        },
+        { new: true },
+        (err, place) => {
+          if (err) return res.status(400).json({ response: err });
+          return res.status(200).json(place);
+        }
+      );
+    } catch (err) {
+      if (err) return res.status(400).json({ response: err });
+    }
+  },
 
-exports.delete = (req, res) => {
-  Place.remove(req.params.id, (err, data) => {
-    if (err) {
-      if (err.kind == "not_found") {
-        res.status(404).send({
-          message: `Not found Place with id ${req.params.id}`,
-        });
-      } else {
-        res.status(500).send({
-          message: "Error deleting Place with id " + req.params.id,
-        });
-      }
-    } else res.send({ message: "Place deleted successfully!" });
-  });
+  delete: async (req, res) => {
+    const { id } = req.params;
+
+    await Place.deleteOne({ _id: id }, (err, ress) => {
+      if (err) res.status(400).json({ response: err });
+      return res.status(200).json({ response: "Delete place with id " + id });
+    });
+  },
 };

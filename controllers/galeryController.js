@@ -1,86 +1,65 @@
 const Galery = require("../models/galery.js");
 
-exports.create = (req, res) => {
-  if (!req.body) {
-    res.status(400).send({
-      message: "Fill all data!",
+module.exports = {
+  create: async (req, res) => {
+    const imageAsset =
+      req.protocol + "://" + req.get("host") + "/" + req.file.filename;
+
+    const galery = new Galery({
+      imageAsset: imageAsset,
+      place_id: req.body.place_id,
     });
-  }
 
-  const imageAsset = req.get('host') + req.file.filename;
-
-  const galery = new Galery({
-    imageAsset: imageAsset,
-    place_id: req.body.place_id,
-  });
-
-  Galery.create(galery, (err, data) => {
-    if (err) {
-      res.status(500).send({
-        message: err.message || "Error when creating Galery.",
+    try {
+      galery.save((err, ress) => {
+        if (err) return res.status(400).json({ response: err });
+        return res.status(200).json(galery);
       });
-    } else res.send(data);
-  });
-};
+    } catch (err) {
+      if (err) return res.status(400).json({ response: err });
+    }
+  },
 
-exports.find = (req, res) => {
-  Galery.findByPlaceId(req.params.placeId, (err, data) => {
-    if (err) {
-      if (err.kind == "not_found") {
-        res.status(404).send({
-          message: `Not found Galery with place id ${req.params.placeId}`,
-        });
-      } else {
-        req.status(500).send({
-          message: "Error get Galey with place id " + req.params.placeId,
-        });
-      }
-    } else res.send(data);
-  });
-};
+  find: async (req, res) => {
+    const { placeId } = req.params;
 
-exports.update = (req, res) => {
-  if (!req.body) {
-    res.status(400).send({
-      message: "Fill all data!",
+    await Galery.find({ place_id: placeId }, (err, galery) => {
+      if (err) res.status(400).json({ response: err });
+      return res.status(200).json(galery);
     });
-  }
+  },
 
-  const imageAsset = req.get('host') + req.file.filename;
+  update: async (req, res) => {
+    const { id } = req.params;
+    const imageAsset =
+      req.protocol + "://" + req.get("host") + "/" + req.file.filename;
 
-  const galery = new Galery({
-    imageAsset: imageAsset,
-    place_id: req.body.place_id,
-  });
+    try {
+      let galeryParams = {
+        imageAsset: imageAsset,
+        place_id: req.body.place_id,
+      };
 
-  console.log(req.body);
-  Galery.updateById(req.params.id, galery, (err, data) => {
-    if (err) {
-      if (err.kind == "not_found") {
-        res.status(404).send({
-          message: `Not found Galery with id ${req.params.id}`,
-        });
-      } else {
-        res.status(500).send({
-          message: "Error updating Galery with id " + req.params.id,
-        });
-      }
-    } else res.send(data);
-  });
-};
+      Galery.findOneAndUpdate(
+        id,
+        { $set: galeryParams },
+        { new: ture },
+        (err, galery) => {
+          if (err) return res.status(400).json({ response: err });
+          return res.status(200).json(galery);
+        }
+      );
+    } catch (err) {
+      if (err) return res.status(400).json({ response: err });
+    }
+  },
 
-exports.delete = (req, res) => {
-  Galery.remove(req.params.id, (err, data) => {
-    if (err) {
-      if (err.kind == "not_found") {
-        res.status(404).send({
-          message: `Not found Galery with id ${req.params.id}`,
-        });
-      } else {
-        res.status(500).send({
-          message: "Error deleting Galery with id " + req.params.id,
-        });
-      }
-    } else res.send({ message: "Galery deleted successfully!" });
-  });
+  delete: async (req, res) => {
+    const { id } = req.params;
+
+    await Galery.deleteOne({ _id: id }, (err, ress) => {
+      if (err) return res.status(400).json({ response: err });
+      return res.status(200).json({ response: "Deleted galery with id " + id });
+    });
+  },
 };
