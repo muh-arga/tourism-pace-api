@@ -8,7 +8,7 @@ const placeSchema = new Schema({
   imageAsset: String,
   openDay: String,
   openHour: String,
-  ticketPrice: Number,
+  ticketPrice: String,
   galeries: [String],
 }, {timestamps: true})
 
