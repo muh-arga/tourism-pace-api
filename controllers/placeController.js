@@ -82,7 +82,7 @@ module.exports = {
     const places = await Place.find({});
     if (!places)
       return res.status(400).json({ response: "Cannot find places" });
-    return res.status(200).json(places);
+    return res.status(200).json({places: places});
   },
 
   findOne: async (req, res) => {
