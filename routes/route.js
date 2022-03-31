@@ -4,18 +4,18 @@ const multer = require("multer");
 const path = require("path");
 const router = express.Router();
 
-const multerStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../public'));
-  },
-  filename: (req, file, cb) => {
-    let filename = file.originalname;
-    filename = filename.replace(/\s+/g, "");
-    cb(null, `uploads/${Date.now()}-${filename}`);
-  },
-});
+// const multerStorage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, path.join(__dirname, '../public'));
+//   },
+//   filename: (req, file, cb) => {
+//     let filename = file.originalname;
+//     filename = filename.replace(/\s+/g, "");
+//     cb(null, `uploads/${Date.now()}-${filename}`);
+//   },
+// });
 
-const upload = multer({ storage: multerStorage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.use(bodyParser.json());
 router.use(bodyParser.urlencoded({ extended: true }));
