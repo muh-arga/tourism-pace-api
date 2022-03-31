@@ -8,7 +8,8 @@ const placeSchema = new Schema({
   imageAsset: String,
   openDay: String,
   openHour: String,
-  ticketPrice: Number
+  ticketPrice: Number,
+  galeries: [String],
 }, {timestamps: true})
 
 const Place = mongoose.model('Place', placeSchema)

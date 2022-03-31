@@ -1,4 +1,5 @@
 const Galery = require("../models/galery.js");
+const Place = require("../models/place.js");
 const {
   ref,
   uploadBytesResumable,
@@ -60,7 +61,17 @@ module.exports = {
           try {
             galery.save((err, ress) => {
               if (err) return res.status(400).json({ response: err });
-              return res.status(200).json(galery);
+              Place.findOneAndUpdate(
+                req.body.place_id,
+                {
+                  $push: { galeries: downloadUrl },
+                },
+                { new: true, upsert: true },
+                (error, place) => {
+                  if (error) return res.status(400).json({ response: err });
+                  return res.status(200).json(galery);
+                }
+              );
             });
           } catch (err) {
             if (err) return res.status(400).json({ response: err });
