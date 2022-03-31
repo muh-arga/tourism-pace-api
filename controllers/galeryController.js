@@ -61,7 +61,7 @@ module.exports = {
           try {
             galery.save((err, ress) => {
               if (err) return res.status(400).json({ response: err });
-              Place.findOneAndUpdate(
+              Place.findByIdAndUpdate(
                 req.body.place_id,
                 {
                   $push: { galeries: downloadUrl },
