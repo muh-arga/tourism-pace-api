@@ -148,11 +148,11 @@ module.exports = {
               imageAsset: downloadUrl,
               openDay: req.body.openDay,
               openHour: req.body.openHour,
-              ticketPrice: req.ticketPrice,
+              ticketPrice: req.body.ticketPrice,
             };
 
             Place.findOneAndUpdate(
-              id,
+              {_id: id},
               {
                 $set: placeParams,
               },
